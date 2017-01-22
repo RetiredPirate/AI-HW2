@@ -116,9 +116,9 @@ class AIPlayer(Player):
 
         numAnts = len(inventory.ants)
         if(numAnts <= 3):
-        	if(food > 0):
-        		if(getAntAt(currentState, batCave.coords) == None):
-        			return Move(BUILD, (self.batCave), WORKER)
+        	if(inventory.foodCount > 0):
+        		if(getAntAt(currentState, self.batCave[0].coords) == None):
+        			return Move(BUILD, (self.batCave[0].coords), WORKER)
        		else:
        			return Move(END, None, None)
 
