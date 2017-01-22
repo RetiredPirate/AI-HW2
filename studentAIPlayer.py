@@ -114,13 +114,11 @@ class AIPlayer(Player):
 
         #if queen is sitting on the anthill, move her so a worker can be made
         myQueen = getAntList(currentState, me, (QUEEN,))[0]
-        if(myQueen.coords == self.batCave.coords):
-            queen_path = createPathToward(currentState, myQueen.coords, (9,1), UNIT_STATS[QUEEN][MOVEMENT])
-            return Move(MOVE_ANT, queen_path, None)
-        else: 
+        if(myQueen.hasMoved):
             return Move(END, None, None)
-
-
+        if(myQueen.coords == self.batCave.coords or myQueen.coords != (9,1)):
+            queen_path = createPathToward(currentState, myQueen.coords, (9,1), UNIT_STATS[QUEEN][MOVEMENT])
+            return Move(MOVE_ANT, queen_path, None)        
     ##
     #getAttack
     #Description: The getAttack method is called on the player whenever an ant completes 
