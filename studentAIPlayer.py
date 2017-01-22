@@ -34,6 +34,7 @@ class AIPlayer(Player):
         self.batFood = None
         self.batTunnel = None
         self.batCave = None
+        self.workerList = None
     ##
     #getPlacement
     #
@@ -111,6 +112,21 @@ class AIPlayer(Player):
             self.batCave = getConstrList(currentState, me, (ANTHILL,))
         if(self.batTunnel == None):
             self.batTunnel = getConstrList(currentState, me, (TUNNEL,))
+
+
+        numAnts = len(inventory.ants)
+        if(numAnts <= 3):
+        	if(food > 0):
+        		if(getAntAt(currentState, batCave.coords) == None):
+        			return Move(BUILD, (self.batCave), WORKER)
+       		else:
+       			return Move(END, None, None)
+
+
+
+
+
+
         #default is to do nothing, which is a valid move
         return Move(END, None, None)
 
