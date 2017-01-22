@@ -34,10 +34,7 @@ class AIPlayer(Player):
         self.batFood = None
         self.batTunnel = None
         self.batCave = None
-<<<<<<< HEAD
         self.workerList = None
-=======
->>>>>>> 4dba122d00016f64b703d2073a633820f92fd2b0
     ##
     #getPlacement
     #
@@ -110,7 +107,6 @@ class AIPlayer(Player):
 
         #if we dont know where our food is yet, find the two locations
         if(self.batFood == None):
-<<<<<<< HEAD
             self.batFood = getConstrList(currentState, None, (FOOD,))
         if(self.batCave == None):
             self.batCave = getConstrList(currentState, me, (ANTHILL,))
@@ -126,20 +122,6 @@ class AIPlayer(Player):
        		else:
        			return Move(END, None, None)
 
-
-
-
-
-
-        #default is to do nothing, which is a valid move
-        return Move(END, None, None)
-=======
-            self.batFood = getConstrList(currentState, None, (FOOD,))[1]
-        if(self.batCave == None):
-            self.batCave = getConstrList(currentState, me, (ANTHILL,))[0]
-        if(self.batTunnel == None):
-            self.batTunnel = getConstrList(currentState, me, (TUNNEL,))[0]
-
         #if queen is sitting on the anthill, move her so a worker can be made
         myQueen = getAntList(currentState, me, (QUEEN,))[0]
         if(myQueen.coords == self.batCave.coords):
@@ -147,7 +129,9 @@ class AIPlayer(Player):
             return Move(MOVE_ANT, queen_path, None)
         else: 
             return Move(END, None, None)
->>>>>>> 4dba122d00016f64b703d2073a633820f92fd2b0
+
+        #default is to do nothing, which is a valid move
+        return Move(END, None, None)
 
 
     ##
