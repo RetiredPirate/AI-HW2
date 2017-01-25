@@ -81,6 +81,7 @@ class AIPlayer(Player):
             return moves
         else:            
             return None  #should never happen
+
     ##
     #getMove
     #Description: The getMove method corresponds to the play phase of the game 
@@ -118,14 +119,15 @@ class AIPlayer(Player):
         if(numAnts <= 3):
         	if(inventory.foodCount > 0):
         		if(getAntAt(currentState, self.batCave[0].coords) == None):
-        			return Move(BUILD, (self.batCave[0].coords), WORKER)
+        			return Move(BUILD, self.batCave[0].coords, WORKER)
        		else:
        			return Move(END, None, None)
 
         #if queen is sitting on the anthill, move her so a worker can be made
         myQueen = getAntList(currentState, me, (QUEEN,))[0]
-        if(myQueen.coords == self.batCave.coords):
+        if(myQueen.coords == self.batCave[0].coords):
             queen_path = createPathToward(currentState, myQueen.coords, (9,1), UNIT_STATS[QUEEN][MOVEMENT])
+            print 'fuck'
             return Move(MOVE_ANT, queen_path, None)
         else: 
             return Move(END, None, None)
