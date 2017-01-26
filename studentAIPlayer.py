@@ -35,6 +35,7 @@ class AIPlayer(Player):
         self.batFoodTwo = None
         self.batTunnel = None
         self.batCave = None
+        self.workerList = None
     ##
     #getPlacement
     #
@@ -81,6 +82,7 @@ class AIPlayer(Player):
             return moves
         else:            
             return None  #should never happen
+
     ##
     #getMove
     #Description: The getMove method corresponds to the play phase of the game 
@@ -111,9 +113,18 @@ class AIPlayer(Player):
         if(self.batFoodTwo == None):
             self.batFoodTwo = getConstrList(currentState, None, (FOOD,))[1]
         if(self.batCave == None):
-            self.batCave = getConstrList(currentState, me, (ANTHILL,))[0]
+            self.batCave = getConstrList(currentState, me, (ANTHILL,))
         if(self.batTunnel == None):
-            self.batTunnel = getConstrList(currentState, me, (TUNNEL,))[0]
+            self.batTunnel = getConstrList(currentState, me, (TUNNEL,))
+
+
+        numAnts = len(inventory.ants)
+        if(numAnts <= 3):
+        	if(inventory.foodCount > 0):
+        		if(getAntAt(currentState, self.batCave[0].coords) == None):
+        			return Move(BUILD, self.batCave[0].coords, WORKER)
+       		else:
+       			return Move(END, None, None)
 
         #if queen is sitting on the anthill, move her so a worker can be made
         myQueen = getAntList(currentState, me, (QUEEN,))[0]
@@ -122,7 +133,11 @@ class AIPlayer(Player):
             queenPath = self.queenSetup(currentState, myQueen, self.batFoodOne.coords, self.batFoodTwo.coords)
             return Move(MOVE_ANT, queenPath, None)
         else:
-            return Move(END, None, None)   
+            return Move(END, None, None)    
+
+
+        #default is to do nothing, which is a valid move
+        return Move(END, None, None)
 
     def queenSetup(self, currentState, myQueen, foodOne, foodTwo):
         queenCoordinates = foodOne
