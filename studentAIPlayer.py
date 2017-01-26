@@ -31,7 +31,8 @@ class AIPlayer(Player):
     def __init__(self, inputPlayerId):
         super(AIPlayer,self).__init__(inputPlayerId, "The Hungry Bat")
         #these variables will be used to store the locations
-        self.batFood = None
+        self.batFoodOne = None
+        self.batFoodTwo = None
         self.batTunnel = None
         self.batCave = None
     ##
@@ -105,8 +106,10 @@ class AIPlayer(Player):
         me = currentState.whoseTurn
 
         #if we dont know where our food is yet, find the two locations
-        if(self.batFood == None):
-            self.batFood = getConstrList(currentState, None, (FOOD,))[1]
+        if(self.batFoodOne == None):
+            self.batFoodOne = getConstrList(currentState, None, (FOOD,))[0]
+        if(self.batFoodTwo == None):
+            self.batFoodTwo = getConstrList(currentState, None, (FOOD,))[1]
         if(self.batCave == None):
             self.batCave = getConstrList(currentState, me, (ANTHILL,))[0]
         if(self.batTunnel == None):
@@ -116,14 +119,18 @@ class AIPlayer(Player):
         myQueen = getAntList(currentState, me, (QUEEN,))[0]
         if(myQueen.hasMoved == False):
             #if(myQueen.coords == self.batCave.coords):
-            queenPath = self.queenSetup(currentState, myQueen)
+            queenPath = self.queenSetup(currentState, myQueen, self.batFoodOne.coords, self.batFoodTwo.coords)
             return Move(MOVE_ANT, queenPath, None)
         else:
-            return Move(END, None, None)       
-    def queenSetup(self, currentState, myQueen):
-        return createPathToward(currentState, myQueen.coords, (5,0), UNIT_STATS[QUEEN][MOVEMENT])
-            
+            return Move(END, None, None)   
 
+    def queenSetup(self, currentState, myQueen, foodOne, foodTwo):
+        queenCoordinates = foodOne
+        while(queenCoordinates == foodOne or queenCoordinates == foodTwo):
+           x = random.randint(0,9)  
+           queenCoordinates = (x,0)
+        return createPathToward(currentState, myQueen.coords, queenCoordinates, UNIT_STATS[QUEEN][MOVEMENT])
+            
     ##
     #getAttack
     #Description: The getAttack method is called on the player whenever an ant completes 
