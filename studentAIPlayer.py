@@ -117,13 +117,12 @@ class AIPlayer(Player):
         if(self.batTunnel == None):
             self.batTunnel = getConstrList(currentState, me, (TUNNEL,))
 
-        print(self.batCave[0].coords)
 
+        #Build New Worker(s)
         numAnts = len(inventory.ants)
         if(numAnts <= 3):
             if(inventory.foodCount > 0):
                 if(getAntAt(currentState, self.batCave[0].coords) == None):
-                    print(self.batCave[0].coords)
                     return Move(BUILD, [self.batCave[0].coords,], WORKER)
        	    else:
        	        return Move(END, None, None)
