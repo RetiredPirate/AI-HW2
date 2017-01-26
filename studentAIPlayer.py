@@ -81,6 +81,7 @@ class AIPlayer(Player):
             return moves
         else:            
             return None  #should never happen
+
     ##
     #getMove
     #Description: The getMove method corresponds to the play phase of the game 
@@ -118,7 +119,7 @@ class AIPlayer(Player):
         if(numAnts <= 3):
         	if(inventory.foodCount > 0):
         		if(getAntAt(currentState, self.batCave[0].coords) == None):
-        			return Move(BUILD, (self.batCave[0].coords), WORKER)
+        			return Move(BUILD, self.batCave[0].coords, WORKER)
        		else:
        			return Move(END, None, None)
 
@@ -129,10 +130,19 @@ class AIPlayer(Player):
             queenPath = self.queenSetup(currentState, myQueen)
             return Move(MOVE_ANT, queenPath, None)
         else:
-            return Move(END, None, None)       
+            return Move(END, None, None)    
+
+
+        #default is to do nothing, which is a valid move
+        return Move(END, None, None)
+
+
+
     def queenSetup(self, currentState, myQueen):
         return createPathToward(currentState, myQueen.coords, (5,0), UNIT_STATS[QUEEN][MOVEMENT])
-            
+          
+
+
     ##
     #getAttack
     #Description: The getAttack method is called on the player whenever an ant completes 
