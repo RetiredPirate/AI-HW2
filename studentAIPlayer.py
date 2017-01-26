@@ -120,18 +120,31 @@ class AIPlayer(Player):
 
         #Build New Worker(s)
         numAnts = len(inventory.ants)
-        if(numAnts <= 3):
+        if(len(getAntList(currentState, me, (WORKER,))) < 2):
             if(inventory.foodCount > 0):
                 if(getAntAt(currentState, self.batCave[0].coords) == None):
                     return Move(BUILD, [self.batCave[0].coords,], WORKER)
        	    else:
        	        return Move(END, None, None)
+        print(getAntList(currentState, me, (WORKER,)))
+        for worker in getAntList(currentState, me, (WORKER,)):
+            if not worker.hasMoved:
+                if (worker.carrying):
+                    path = createPathToward(currentState, worker.coords, 
+                            self.batTunnel[0].coords, UNIT_STATS[WORKER][MOVEMENT])
+                    return Move(MOVE_ANT, path, None)
+                else:
+                    path = createPathToward(currentState, worker.coords,
+                            self.batFoodOne.coords, UNIT_STATS[WORKER][MOVEMENT])
+                    return Move(MOVE_ANT, path, None)
+
 
         #if queen is sitting on the anthill, move her so a worker can be made
         myQueen = getAntList(currentState, me, (QUEEN,))[0]
         if(myQueen.hasMoved == False):
             #if(myQueen.coords == self.batCave.coords):
-            queenPath = self.queenSetup(currentState, myQueen, self.batFoodOne.coords, self.batFoodTwo.coords)
+            queenPath = self.queenSetup(currentState, myQueen, self.batFoodOne.coords, 
+                    self.batFoodTwo.coords)
             return Move(MOVE_ANT, queenPath, None)
         else:
             return Move(END, None, None)    
