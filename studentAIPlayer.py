@@ -21,7 +21,6 @@ from AIPlayerUtils import *
 #   playerId - The id of the player.
 ##
 class AIPlayer(Player):
-
     #__init__
     #Description: Creates a new Player
     #
@@ -31,8 +30,7 @@ class AIPlayer(Player):
     def __init__(self, inputPlayerId):
         super(AIPlayer,self).__init__(inputPlayerId, "The Hungry Bat")
         #these variables will be used to store the locations
-        self.batFoodOne = None
-        self.batFoodTwo = None
+        self.batFood = None
         self.batTunnel = None
         self.batCave = None
         self.workerList = None
@@ -108,14 +106,13 @@ class AIPlayer(Player):
         me = currentState.whoseTurn
 
         #if we dont know where our food is yet, find the two locations
-        if(self.batFoodOne == None):
-            self.batFoodOne = getConstrList(currentState, None, (FOOD,))[0]
-        if(self.batFoodTwo == None):
-            self.batFoodTwo = getConstrList(currentState, None, (FOOD,))[1]
+        if(self.batFood == None):
+            self.batFood = getConstrList(currentState, None, (FOOD,))
         if(self.batCave == None):
             self.batCave = getConstrList(currentState, me, (ANTHILL,))
         if(self.batTunnel == None):
             self.batTunnel = getConstrList(currentState, me, (TUNNEL,))
+        
 
 
         #Build New Worker(s)
@@ -135,7 +132,7 @@ class AIPlayer(Player):
                     return Move(MOVE_ANT, path, None)
                 else:
                     path = createPathToward(currentState, worker.coords,
-                            self.batFoodOne.coords, UNIT_STATS[WORKER][MOVEMENT])
+                            self.batFood[0].coords, UNIT_STATS[WORKER][MOVEMENT])
                     return Move(MOVE_ANT, path, None)
 
 
@@ -143,8 +140,8 @@ class AIPlayer(Player):
         myQueen = getAntList(currentState, me, (QUEEN,))[0]
         if(myQueen.hasMoved == False):
             #if(myQueen.coords == self.batCave.coords):
-            queenPath = self.queenSetup(currentState, myQueen, self.batFoodOne.coords, 
-                    self.batFoodTwo.coords)
+            queenPath = self.queenSetup(currentState, myQueen, self.batFood[0].coords, 
+                    self.batFood[1].coords)
             return Move(MOVE_ANT, queenPath, None)
         else:
             return Move(END, None, None)    
