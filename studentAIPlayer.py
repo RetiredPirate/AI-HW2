@@ -114,14 +114,16 @@ class AIPlayer(Player):
         if(self.batTunnel == None):
             self.batTunnel = getConstrList(currentState, me, (TUNNEL,))
 
+        print(self.batCave[0].coords)
 
         numAnts = len(inventory.ants)
         if(numAnts <= 3):
-        	if(inventory.foodCount > 0):
-        		if(getAntAt(currentState, self.batCave[0].coords) == None):
-        			return Move(BUILD, self.batCave[0].coords, WORKER)
-       		else:
-       			return Move(END, None, None)
+            if(inventory.foodCount > 0):
+                if(getAntAt(currentState, self.batCave[0].coords) == None):
+                    print(self.batCave[0].coords)
+                    return Move(BUILD, [self.batCave[0].coords,], WORKER)
+       	    else:
+       	        return Move(END, None, None)
 
         #if queen is sitting on the anthill, move her so a worker can be made
         myQueen = getAntList(currentState, me, (QUEEN,))[0]
@@ -137,7 +139,10 @@ class AIPlayer(Player):
         return Move(END, None, None)
 
 
-
+    ##
+    #queenSetup
+    #returns the path for the queen to take on her next turn
+    #
     def queenSetup(self, currentState, myQueen):
         return createPathToward(currentState, myQueen.coords, (5,0), UNIT_STATS[QUEEN][MOVEMENT])
           
