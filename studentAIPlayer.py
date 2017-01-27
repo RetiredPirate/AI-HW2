@@ -34,7 +34,8 @@ class AIPlayer(Player):
         self.batTunnel = None
         self.batCave = None
         self.workerList = None
-    ##
+        self.reservedCoordinates = []
+
     #getPlacement
     #
     #Description: The getPlacement method corresponds to the 
@@ -53,7 +54,7 @@ class AIPlayer(Player):
     #   currentState - The current state of the game at the time the Game is 
     #       requesting a placement from the player.(GameState)
     #
-    #Return: If setup phase 1: list of eleven 2-tuples of ints -> [(x1,y1), (x2,y2),…,(x10,y10)]
+    #Return: If setup phase 1: list of eleven 2-tuples of ints -> [(x1,y1), (x2,y2),â€¦,(x10,y10)]
     #       If setup phase 2: list of two 2-tuples of ints -> [(x1,y1), (x2,y2)]
     #Creates a defensive wall of grass, while putting the tunnel and the anthill in the middle
     ##
@@ -112,9 +113,12 @@ class AIPlayer(Player):
             self.batCave = getConstrList(currentState, me, (ANTHILL,))
         if(self.batTunnel == None):
             self.batTunnel = getConstrList(currentState, me, (TUNNEL,))
-        
-
-
+        if not(self.reservedCoordinates):
+            self.reservedCoordinates.append(self.batCave[0].coords)
+            self.reservedCoordinates.append(self.batTunnel[0].coords)
+            self.reservedCoordinates.append(self.batFood[0].coords)
+            self.reservedCoordinates.append(self.batFood[1].coords)
+            
         #Build New Worker(s)
         numAnts = len(inventory.ants)
         if(len(getAntList(currentState, me, (WORKER,))) < 2):
@@ -123,7 +127,7 @@ class AIPlayer(Player):
                     return Move(BUILD, [self.batCave[0].coords,], WORKER)
        	    else:
        	        return Move(END, None, None)
-        print(getAntList(currentState, me, (WORKER,)))
+        #print(getAntList(currentState, me, (WORKER,)))
         for worker in getAntList(currentState, me, (WORKER,)):
             if not worker.hasMoved:
                 if (worker.carrying):
@@ -140,8 +144,7 @@ class AIPlayer(Player):
         myQueen = getAntList(currentState, me, (QUEEN,))[0]
         if(myQueen.hasMoved == False):
             #if(myQueen.coords == self.batCave.coords):
-            queenPath = self.queenSetup(currentState, myQueen, self.batFood[0].coords, 
-                    self.batFood[1].coords)
+            queenPath = self.queenMove(currentState, myQueen, self.reservedCoordinates)
             return Move(MOVE_ANT, queenPath, None)
         else:
             return Move(END, None, None)    
@@ -152,16 +155,22 @@ class AIPlayer(Player):
 
 
     ##
-    #queenSetup
-    #returns the path for the queen to take on her next turn
+    #queenMove
+    #returns the path for queens next move
+    #This moves the queen off the cave, and also keeps her away 
+    # from the tunnels and the food resources so workers can move easily
     #
-    def queenSetup(self, currentState, myQueen, foodOne, foodTwo):
-        queenCoordinates = foodOne
-        while(queenCoordinates == foodOne or queenCoordinates == foodTwo):
-           x = random.randint(0,9)  
-           queenCoordinates = (x,0)
+    def queenMove(self, currentState, myQueen, reservedCoordinates):
+        queenCoordinates = myQueen.coords
+        while(queenCoordinates == self.reservedCoordinates[0]
+            or queenCoordinates == self.reservedCoordinates[1]
+            or stepsToReach(currentState, queenCoordinates, self.reservedCoordinates[0]) <= 2
+            or stepsToReach(currentState, queenCoordinates, self.reservedCoordinates[1]) <= 2
+            or stepsToReach(currentState, queenCoordinates, self.reservedCoordinates[2]) <= 2
+            or stepsToReach(currentState, queenCoordinates, self.reservedCoordinates[3]) <= 2):
+            queenCoordinates = (random.randint(0,9), random.randint(0,1))
         return createPathToward(currentState, myQueen.coords, queenCoordinates, UNIT_STATS[QUEEN][MOVEMENT])
-            
+
     ##
     #getAttack
     #Description: The getAttack method is called on the player whenever an ant completes 
