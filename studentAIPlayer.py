@@ -59,6 +59,11 @@ class AIPlayer(Player):
     #Creates a defensive wall of grass, while putting the tunnel and the anthill in the middle
     ##
     def getPlacement(self, currentState):
+        self.batFood = None
+        self.batTunnel = None
+        self.batCave = None
+        self.workerList = None
+        self.reservedCoordinates = []
         if currentState.phase == SETUP_PHASE_1:
             return[(2,1), (7,1), (0,3), (1,3), (2,3), (3,3), (4,3),( 6,3), (7,3), (8,3), (9,3)];    #grass placement 
         #Randomly places enemy food, *stolen from Dr. Nuxoll's Simple Food Gatherer AI*
@@ -118,32 +123,40 @@ class AIPlayer(Player):
             self.reservedCoordinates.append(self.batTunnel[0].coords)
             self.reservedCoordinates.append(self.batFood[0].coords)
             self.reservedCoordinates.append(self.batFood[1].coords)
-            
+
         #Build New Worker(s)
         numAnts = len(inventory.ants)
         if(len(getAntList(currentState, me, (WORKER,))) < 2):
             if(inventory.foodCount > 0):
                 if(getAntAt(currentState, self.batCave[0].coords) == None):
                     return Move(BUILD, [self.batCave[0].coords,], WORKER)
-       	    else:
-       	        return Move(END, None, None)
+       	    
         #print(getAntList(currentState, me, (WORKER,)))
-        for worker in getAntList(currentState, me, (WORKER,)):
+        #move workers
+        workerParty = getAntList(currentState, me, (WORKER,))
+        for worker in workerParty:    
             if not worker.hasMoved:
+                workerIndex = workerParty.index(worker)
                 if (worker.carrying):
-                    path = createPathToward(currentState, worker.coords, 
+                    if(workerIndex == 0):
+                        path = createPathToward(currentState, worker.coords, 
                             self.batTunnel[0].coords, UNIT_STATS[WORKER][MOVEMENT])
+                    else:
+                        path = createPathToward(currentState, worker.coords, 
+                            self.batCave[0].coords, UNIT_STATS[WORKER][MOVEMENT])
                     return Move(MOVE_ANT, path, None)
                 else:
+                    closestFood = stepsToReach(currentState, self.batFood[0].coords, worker.coords)
+                    if(closestFood > stepsToReach(currentState, self.batFood[1].coords, worker.coords)):
+                        closestFood = 1
+                    else:
+                        closestFood = 0
                     path = createPathToward(currentState, worker.coords,
-                            self.batFood[0].coords, UNIT_STATS[WORKER][MOVEMENT])
+                        self.batFood[closestFood].coords, UNIT_STATS[WORKER][MOVEMENT])
                     return Move(MOVE_ANT, path, None)
 
-
-        #if queen is sitting on the anthill, move her so a worker can be made
         myQueen = getAntList(currentState, me, (QUEEN,))[0]
         if(myQueen.hasMoved == False):
-            #if(myQueen.coords == self.batCave.coords):
             queenPath = self.queenMove(currentState, myQueen, self.reservedCoordinates)
             return Move(MOVE_ANT, queenPath, None)
         else:
@@ -158,13 +171,11 @@ class AIPlayer(Player):
     #queenMove
     #returns the path for queens next move
     #This moves the queen off the cave, and also keeps her away 
-    # from the tunnels and the food resources so workers can move easily
+    # from the tunnels and the food resources so workers can move easier
     #
     def queenMove(self, currentState, myQueen, reservedCoordinates):
         queenCoordinates = myQueen.coords
-        while(queenCoordinates == self.reservedCoordinates[0]
-            or queenCoordinates == self.reservedCoordinates[1]
-            or stepsToReach(currentState, queenCoordinates, self.reservedCoordinates[0]) <= 2
+        while(stepsToReach(currentState, queenCoordinates, self.reservedCoordinates[0]) <= 2
             or stepsToReach(currentState, queenCoordinates, self.reservedCoordinates[1]) <= 2
             or stepsToReach(currentState, queenCoordinates, self.reservedCoordinates[2]) <= 2
             or stepsToReach(currentState, queenCoordinates, self.reservedCoordinates[3]) <= 2):
