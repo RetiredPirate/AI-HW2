@@ -118,7 +118,7 @@ class AIPlayer(Player):
             self.batCave = getConstrList(currentState, me, (ANTHILL,))
         if(self.batTunnel == None):
             self.batTunnel = getConstrList(currentState, me, (TUNNEL,))
-        if not(self.reservedCoordinates):
+        if not(self.reservedCoordinates): #DO NOT ALTER THE ORDER OF APPENDING
             self.reservedCoordinates.append(self.batCave[0].coords)
             self.reservedCoordinates.append(self.batTunnel[0].coords)
             self.reservedCoordinates.append(self.batFood[0].coords)
@@ -131,7 +131,6 @@ class AIPlayer(Player):
                 if(getAntAt(currentState, self.batCave[0].coords) == None):
                     return Move(BUILD, [self.batCave[0].coords,], WORKER)
        	    
-        #print(getAntList(currentState, me, (WORKER,)))
         #move workers
         workerParty = getAntList(currentState, me, (WORKER,))
         for worker in workerParty:    
@@ -139,21 +138,18 @@ class AIPlayer(Player):
                 workerIndex = workerParty.index(worker)
                 if (worker.carrying):
                     if(workerIndex == 0):
-                        path = createPathToward(currentState, worker.coords, 
-                            self.batTunnel[0].coords, UNIT_STATS[WORKER][MOVEMENT])
+                        destination = self.batTunnel[0].coords                    
                     else:
-                        path = createPathToward(currentState, worker.coords, 
-                            self.batCave[0].coords, UNIT_STATS[WORKER][MOVEMENT])
-                    return Move(MOVE_ANT, path, None)
+                        destination = self.batCave[0].coords
+                    path = self.findBestPath(currentState, worker, destination)
                 else:
                     closestFood = stepsToReach(currentState, self.batFood[0].coords, worker.coords)
                     if(closestFood > stepsToReach(currentState, self.batFood[1].coords, worker.coords)):
                         closestFood = 1
                     else:
                         closestFood = 0
-                    path = createPathToward(currentState, worker.coords,
-                        self.batFood[closestFood].coords, UNIT_STATS[WORKER][MOVEMENT])
-                    return Move(MOVE_ANT, path, None)
+                    path = self.findBestPath(currentState, worker, self.batFood[closestFood].coords)
+                return Move(MOVE_ANT, path, None)
 
         myQueen = getAntList(currentState, me, (QUEEN,))[0]
         if(myQueen.hasMoved == False):
@@ -166,12 +162,27 @@ class AIPlayer(Player):
         #default is to do nothing, which is a valid move
         return Move(END, None, None)
 
-
+    ##
+    #findBestPath
+    #Finds the best path to the destination
+    #Returns a path
+    #
+    def findBestPath(self, currentState, ant, destCoords):
+        moveArray = listAllMovementPaths(currentState, ant.coords, UNIT_STATS[ant.type][MOVEMENT])
+        shortestDist = 100 #impossibly large value
+        bestCoords = (0,0) #default
+        for movelists in moveArray:
+            for move in movelists:
+                dist = stepsToReach(currentState, move, destCoords)
+                if(shortestDist > dist):
+                    shortestDist = dist
+                    bestCoords = move
+        return createPathToward(currentState, ant.coords, bestCoords, UNIT_STATS[ant.type][MOVEMENT])
     ##
     #queenMove
     #returns the path for queens next move
     #This moves the queen off the cave, and also keeps her away 
-    # from the tunnels and the food resources so workers can move easier
+    # from the tunnels and the food resources so workers can move faster
     #
     def queenMove(self, currentState, myQueen, reservedCoordinates):
         queenCoordinates = myQueen.coords
