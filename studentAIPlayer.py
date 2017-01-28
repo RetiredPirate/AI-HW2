@@ -125,11 +125,9 @@ class AIPlayer(Player):
             self.reservedCoordinates.append(self.batFood[1].coords)
 
         #Build New Worker(s)
-        numAnts = len(inventory.ants)
         if(len(getAntList(currentState, me, (WORKER,))) < 2):
-            if(inventory.foodCount > 0):
-                if(getAntAt(currentState, self.batCave[0].coords) == None):
-                    return Move(BUILD, [self.batCave[0].coords,], WORKER)
+            if(inventory.foodCount > 0 and getAntAt(currentState, self.batCave[0].coords) == None):
+                return Move(BUILD, [self.batCave[0].coords,], WORKER)
        	    
         #move workers
         workerParty = getAntList(currentState, me, (WORKER,))
@@ -155,8 +153,28 @@ class AIPlayer(Player):
         if(myQueen.hasMoved == False):
             queenPath = self.queenMove(currentState, myQueen, self.reservedCoordinates)
             return Move(MOVE_ANT, queenPath, None)
+
+        #Try to build a soldier ant if the enemy is in our zone, the neutral zone, or on the outer edge 
+        #of the enemy territory, and we don't have any soldier ants
+        if not(getAntList(currentState, me, (SOLDIER,))):  
+            for ant in getAntList(currentState, 0, (QUEEN, WORKER, DRONE, SOLDIER, R_SOLDIER)):
+                if(ant.coords[1] < 7 and inventory.foodCount >= 3 
+                    and getAntAt(currentState, self.batCave[0].coords) == None):
+                    print(ant.coords[1])
+                    return Move(BUILD, [self.batCave[0].coords,], SOLDIER) 
+        
+        #if we have created a response soldier, move them towards the nearest threat
         else:
-            return Move(END, None, None)    
+            mySoldier = getAntList(currentState, me, (SOLDIER,))[0]
+            if(mySoldier.hasMoved == False):
+                #find the closest target
+                dist = 100.0
+                targetCoords = (0,0)
+                for ant in getAntList(currentState, 0, (QUEEN, WORKER, DRONE, SOLDIER, R_SOLDIER)):
+                    if(approxDist(ant.coords, mySoldier.coords) < dist):
+                        targetCoords = ant.coords
+                path = self.findBestPath(currentState, mySoldier, targetCoords)
+                return Move(MOVE_ANT, path, None)
 
 
         #default is to do nothing, which is a valid move
