@@ -110,7 +110,7 @@ class AIPlayer(Player):
     def getMove(self, currentState):
         inventory = getCurrPlayerInventory(currentState)
         me = currentState.whoseTurn
-
+      
         #if we dont know where our food is yet, find the two locations
         if(self.batFood == None):
             self.batFood = getConstrList(currentState, None, (FOOD,))
@@ -154,31 +154,43 @@ class AIPlayer(Player):
             queenPath = self.queenMove(currentState, myQueen, self.reservedCoordinates)
             return Move(MOVE_ANT, queenPath, None)
 
-        #Try to build a soldier ant if the enemy is in our zone, the neutral zone, or on the outer edge 
-        #of the enemy territory, and we don't have any soldier ants
-        if not(getAntList(currentState, me, (SOLDIER,))):  
-            for ant in getAntList(currentState, 0, (QUEEN, WORKER, DRONE, SOLDIER, R_SOLDIER)):
-                if(ant.coords[1] < 7 and inventory.foodCount >= 3 
+         #if we dont have a soldier, try to build one if there is space and enough resouces to do so
+        if (getAntList(currentState, me, (SOLDIER,))):
+            if(getAntAt(currentState, self.batCave[0].coords) == None
+                and inventory.foodCount >= 3):
+                    return Move(BUILD, [self.batCave[0].coords,], SOLDIER)
+        #if we have at least one soldier, have/them find and attack the enemy
+        else:
+            battalion = getAntList(currentState, me, (SOLDIER,))
+            for soldier in battalion:
+                if(soldier.hasMoved == False):
+                    targetCoords = self.findNearestEnemy(currentState, soldier)
+                    path = self.findBestPath(currentState, soldier, targetCoords)
+                    return Move(MOVE_ANT, path, None)
+
+        #Try to build an extra soldier ant if the enemy is in the neutral zone, or in our territory
+        if (len(getAntList(currentState, me, (SOLDIER,))) < 2):  
+            for ant in getAntList(currentState, not me, (QUEEN, WORKER, DRONE, SOLDIER, R_SOLDIER)):
+                if(ant.coords[1] < 6 and inventory.foodCount >= 3 
                     and getAntAt(currentState, self.batCave[0].coords) == None):
                     print(ant.coords[1])
                     return Move(BUILD, [self.batCave[0].coords,], SOLDIER) 
-        
-        #if we have created a response soldier, move them towards the nearest threat
-        else:
-            mySoldier = getAntList(currentState, me, (SOLDIER,))[0]
-            if(mySoldier.hasMoved == False):
-                #find the closest target
-                dist = 100.0
-                targetCoords = (0,0)
-                for ant in getAntList(currentState, 0, (QUEEN, WORKER, DRONE, SOLDIER, R_SOLDIER)):
-                    if(approxDist(ant.coords, mySoldier.coords) < dist):
-                        targetCoords = ant.coords
-                path = self.findBestPath(currentState, mySoldier, targetCoords)
-                return Move(MOVE_ANT, path, None)
 
 
         #default is to do nothing, which is a valid move
         return Move(END, None, None)
+    ##
+    #findNearestEnemy
+    #Gets the coordinates of the nearest enemy of the desired type(s)
+    #Returns the coordinates of the nearest enemy
+    #
+    def findNearestEnemy(self, currentState, ant):
+        dist = 100.0
+        targetCoords = (0,0)
+        for enemyAnt in getAntList(currentState, not currentState.whoseTurn, (QUEEN, WORKER, DRONE, SOLDIER, R_SOLDIER)):
+            if(approxDist(enemyAnt.coords, ant.coords) < dist):
+                        targetCoords = enemyAnt.coords
+        return targetCoords
 
     ##
     #findBestPath
