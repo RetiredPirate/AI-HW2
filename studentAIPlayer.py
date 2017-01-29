@@ -64,6 +64,8 @@ class AIPlayer(Player):
         self.batCave = None
         self.workerList = None
         self.reservedCoordinates = []
+        self.lastCoords = [] #Keeps last coords of workers to stop a stalemate
+        self.newTurn = False
         if currentState.phase == SETUP_PHASE_1:
             return[(2,1), (7,1), (0,3), (1,3), (2,3), (3,3), (4,3),( 6,3), (7,3), (8,3), (9,3)];    #grass placement 
         #Randomly places enemy food, *stolen from Dr. Nuxoll's Simple Food Gatherer AI*
@@ -112,8 +114,12 @@ class AIPlayer(Player):
         me = currentState.whoseTurn
 
         #if we dont know where our food is yet, find the two locations
-        if(self.batFood == None):
-            self.batFood = getConstrList(currentState, None, (FOOD,))
+        if(self.batFood == None): #get only the two foods on our side
+            self.batFood = []
+            for food in getConstrList(currentState, None, (FOOD,)): 
+                if food.coords[1] < 4:
+                    self.batFood.append(food)
+            print self.batFood
         if(self.batCave == None):
             self.batCave = getConstrList(currentState, me, (ANTHILL,))
         if(self.batTunnel == None):
@@ -123,6 +129,18 @@ class AIPlayer(Player):
             self.reservedCoordinates.append(self.batTunnel[0].coords)
             self.reservedCoordinates.append(self.batFood[0].coords)
             self.reservedCoordinates.append(self.batFood[1].coords)
+
+        #Prevent getting stuck
+
+        if self.newTurn:
+            currCoords = []
+            for ant in getAntList(currentState, me, (WORKER,)):
+                currCoords.append(ant.coords)
+            if currCoords == self.lastCoords:
+                return Move(MOVE_ANT, random.choice(listAllMovementPaths(currentState, currCoords[0], UNIT_STATS[WORKER][MOVEMENT])), None)
+            self.lastCoords = currCoords
+            self.newTurn = False
+        
 
         #Build New Worker(s)
         if(len(getAntList(currentState, me, (WORKER,))) < 2):
@@ -157,7 +175,7 @@ class AIPlayer(Player):
         #Try to build a soldier ant if the enemy is in our zone, the neutral zone, or on the outer edge 
         #of the enemy territory, and we don't have any soldier ants
         if not(getAntList(currentState, me, (SOLDIER,))):  
-            for ant in getAntList(currentState, 0, (QUEEN, WORKER, DRONE, SOLDIER, R_SOLDIER)):
+            for ant in getAntList(currentState, not me, (QUEEN, WORKER, DRONE, SOLDIER, R_SOLDIER)):
                 if(ant.coords[1] < 7 and inventory.foodCount >= 3 
                     and getAntAt(currentState, self.batCave[0].coords) == None):
                     print(ant.coords[1])
@@ -178,6 +196,7 @@ class AIPlayer(Player):
 
 
         #default is to do nothing, which is a valid move
+        self.newTurn = True
         return Move(END, None, None)
 
     ##
