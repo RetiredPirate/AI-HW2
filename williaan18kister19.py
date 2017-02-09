@@ -120,6 +120,13 @@ class AIPlayer(Player):
             selectedMove = moves[random.randint(0,len(moves) - 1)];
             
         return selectedMove
+
+
+
+
+
+
+
     
     ##
     #getAttack
@@ -173,7 +180,9 @@ class AIPlayer(Player):
 
 
 
-
+    # Create a new Node and return it
+    def initNode(self, move, nextState, prevNode):
+        node = {'move': move, 'nextState': nextState, 'utility': getUtility(nextState), 'parent': prevNode}
 
     # Register a win
     def hasWon(self, currentState, playerId):
