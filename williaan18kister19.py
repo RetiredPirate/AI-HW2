@@ -29,24 +29,18 @@ class AIPlayer(Player):
     def __init__(self, inputPlayerId):
         super(AIPlayer,self).__init__(inputPlayerId, "AI_NOT_FOUND")
 
-<<<<<<< HEAD
-        
         self.enemyFood = []
         self.ourFood = []
 
         self.weHaveNotDoneThisBefore = True
         
-=======
         foods = getConstrList(currentState, None, (FOOD,))
-        self.enemyFood = []
-        self.ourFood = []
 
         for food in foods:
             if food.coords[1] > 3:
                 enemyFood.append(food)
             else:
                 ourFood.append(food)
->>>>>>> ad9740ee7f48c3201ad2d4d788580ba250a0c26b
     
     ##
     #getPlacement
@@ -112,8 +106,6 @@ class AIPlayer(Player):
     #Return: The Move to be made
     ##
     def getMove(self, currentState):
-<<<<<<< HEAD
-
         # get food lists
         if self.weHaveNotDoneThisBefore:
             foods = getConstrList(currentState, None, (FOOD,))
@@ -124,8 +116,6 @@ class AIPlayer(Player):
                     self.ourFood.append(food)
             self.weHaveNotDoneThisBefore = False
 
-=======
->>>>>>> ad9740ee7f48c3201ad2d4d788580ba250a0c26b
         moves = listAllLegalMoves(currentState)
         selectedMove = moves[random.randint(0,len(moves) - 1)];
 
@@ -135,16 +125,7 @@ class AIPlayer(Player):
             selectedMove = moves[random.randint(0,len(moves) - 1)];
             
         return selectedMove
-<<<<<<< HEAD
 
-
-
-
-
-
-
-=======
->>>>>>> ad9740ee7f48c3201ad2d4d788580ba250a0c26b
     
     ##
     #getAttack
@@ -203,10 +184,9 @@ class AIPlayer(Player):
     def initNode(self, move, nextState, prevNode):
         node = {'move': move, 'nextState': nextState, 'utility': getUtility(nextState), 'parent': prevNode}
 
-        elif self.hasWon(currentState, (self.playerId + 1) % 2)
-            return 0.0
+        return node
 
-       # currentState.
+
 
 
 
