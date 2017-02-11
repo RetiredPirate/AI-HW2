@@ -33,14 +33,6 @@ class AIPlayer(Player):
         self.ourFood = []
 
         self.weHaveNotDoneThisBefore = True
-        
-        foods = getConstrList(currentState, None, (FOOD,))
-
-        for food in foods:
-            if food.coords[1] > 3:
-                enemyFood.append(food)
-            else:
-                ourFood.append(food)
     
     ##
     #getPlacement
