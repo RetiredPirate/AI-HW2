@@ -33,6 +33,8 @@ class AIPlayer(Player):
         self.ourFood = []
 
         self.weHaveNotDoneThisBefore = True
+
+        self.searchDepth = 2
     
     ##
     #getPlacement
@@ -108,15 +110,19 @@ class AIPlayer(Player):
                     self.ourFood.append(food)
             self.weHaveNotDoneThisBefore = False
 
-        moves = listAllLegalMoves(currentState)
-        selectedMove = moves[random.randint(0,len(moves) - 1)];
+        return self.moveSearch(currentState, 0, None)['move']
 
-        #don't do a build move if there are already 3+ ants
-        numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
-        while (selectedMove.moveType == BUILD and numAnts >= 3):
-            selectedMove = moves[random.randint(0,len(moves) - 1)];
+
+
+        # moves = listAllLegalMoves(currentState)
+        # selectedMove = moves[random.randint(0,len(moves) - 1)];
+
+        # #don't do a build move if there are already 3+ ants
+        # numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
+        # while (selectedMove.moveType == BUILD and numAnts >= 3):
+        #     selectedMove = moves[random.randint(0,len(moves) - 1)];
             
-        return selectedMove
+        # return selectedMove
 
     
     ##
@@ -150,7 +156,7 @@ class AIPlayer(Player):
                 enemyInv = inv
 
         # Range of 0.5 to 1.5
-        foodUtil = (float(ourInv.foodCount) / float(ourInv.foodCount + enemyInv.foodCount))  + 0.5
+        foodUtil = (float(ourInv.foodCount) / max(float(ourInv.foodCount + enemyInv.foodCount),1))  + 0.5
 
         numAnts = len(ourInv.ants)
         if numAnts < 3:
@@ -173,14 +179,37 @@ class AIPlayer(Player):
 
 
     # Create a new Node and return it
-    def initNode(self, move, nextState, prevNode):
-        node = {'move': move, 'nextState': nextState, 'utility': getUtility(nextState), 'parent': prevNode}
+    def initNode(self, move, currentState):
+        node = {'move': move, 'nextState': getNextState(currentState, move), 
+                'utility': self.getUtility(getNextState(currentState, move))}
 
         return node
 
 
+    # takes a dictionary of nodes, returns the average utility
+    def evalNode(self, nodes):
+        util = -1.0
+        for node in nodes:
+            if node['utility'] > util:
+                util = node['utility']
+                returnNode = node
+
+        return returnNode
 
 
+    def moveSearch(self, state, depth, currNode):
+        if depth > self.searchDepth:
+            return currNode
+
+        nodes = []
+        for move in listAllLegalMoves(state):
+            nodes.append(self.initNode(move, state))
+
+        nextNode = self.evalNode(nodes)
+        return self.moveSearch(nextNode['nextState'], depth+1, nextNode)
+
+
+        
 
 
     # Register a win
