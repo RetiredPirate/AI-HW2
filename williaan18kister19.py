@@ -149,31 +149,45 @@ class AIPlayer(Player):
             else:
                 enemyInv = inv
 
-        # The code below creates a utility value based on the number of ants our agent has in their inventory
-        # Range of 0.5 to 1.5
-        foodUtil = (float(ourInv.foodCount) / max(float(ourInv.foodCount + enemyInv.foodCount), 1)) + 0.5
+        utility = 0
+        # The code below creates a utility value based on the amount of food our agent has in their inventory
+        # Range of 0 to 60
+        utility += float(ourInv.foodCount) * float(5)
 
         # If our agent has less than three ants this is a bad utility, if our agent has 3 to 5 ants this is a good
-        # utility, and if our agent over 5 ants this is a medium utility
+        # utility, and if our agent over 5 ants this is a medium utility        numAnts = len(ourInv.ants)
+        # Range 0 to 40
         numAnts = len(ourInv.ants)
-        if numAnts < 3:
-            antUtil = 0.5
-        elif numAnts in range(3, 5):
-            antUtil = 1.5
-        else:
-            antUtil = 1
+        if numAnts == 2:
+            utility += 5
+        if numAnts == 3:
+            utility += 20
+        if numAnts == 4:
+            utility += 40
+        if numAnts > 4:
+            utility += 10
+
+
+        
+        
 
         # The code below creates a utility value based on the number of ants the enemy has
-        # If the enemy has more than 6 ants this is a bad utility and if the enemy has less it is a good utility
+        # If the enemy has more than 4 ants this is a bad utility and if the enemy has less it is a good utility
+        # Range 0 to 40
         enemyNumAnts = len(enemyInv.ants)
-        if enemyNumAnts > 6:
-            enemyAntUtil = 1.5
-        else:
-            enemyAntUtil = (enemyNumAnts / 6) + 0.5
+        if enemyNumAnts == 1:
+            utility += 40
+        if enemyNumAnts == 2:
+            utility += 30
+        if enemyNumAnts == 3:
+            utility += 20
+        if enemyNumAnts == 4:
+            utility += 10
 
-        # Create the total utility based on the two values calculated above
-        utility = ((foodUtil * antUtil * enemyAntUtil) / (1.5 * 1.5 * 1.5)) - 0.05
+        # Utility Range from 0 to 140
+        utility = float(utility/150.0) + 0.03
 
+        print utility
         return utility
 
     # #
