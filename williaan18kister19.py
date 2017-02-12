@@ -34,7 +34,7 @@ class AIPlayer(Player):
 
         self.weHaveNotDoneThisBefore = True
 
-        self.searchDepth = 2
+        self.SEARCH_DEPTH = 3
     
     ##
     #getPlacement
@@ -110,19 +110,8 @@ class AIPlayer(Player):
                     self.ourFood.append(food)
             self.weHaveNotDoneThisBefore = False
 
-        return self.moveSearch(currentState, 0, None)['move']
-
-
-
-        # moves = listAllLegalMoves(currentState)
-        # selectedMove = moves[random.randint(0,len(moves) - 1)];
-
-        # #don't do a build move if there are already 3+ ants
-        # numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
-        # while (selectedMove.moveType == BUILD and numAnts >= 3):
-        #     selectedMove = moves[random.randint(0,len(moves) - 1)];
-            
-        # return selectedMove
+        retMove = self.moveSearch(currentState, 0, None)
+        return retMove[-2]['move']
 
     
     ##
@@ -179,35 +168,46 @@ class AIPlayer(Player):
 
 
     # Create a new Node and return it
-    def initNode(self, move, currentState):
+    def initNode(self, move, currentState, parrentNode):
         node = {'move': move, 'nextState': getNextState(currentState, move), 
-                'utility': self.getUtility(getNextState(currentState, move))}
+                'utility': self.getUtility(getNextState(currentState, move)), 'parrent': parrentNode}
 
         return node
 
 
     # takes a dictionary of nodes, returns the average utility
+    # Used for determining how good a path of moves is 
     def evalNode(self, nodes):
-        util = -1.0
-        for node in nodes:
-            if node['utility'] > util:
-                util = node['utility']
-                returnNode = node
+    	util = 0
+    	for node in nodes:
+    		util += node['utility']
 
-        return returnNode
+    	return float(util) / float(len(nodes))
 
 
+
+    # recursive informed search of possible moves
+    # Returns a list of nodes to the most desireable node found
     def moveSearch(self, state, depth, currNode):
-        if depth > self.searchDepth:
-            return currNode
+        if depth >= self.SEARCH_DEPTH:
+            return [currNode]
 
+        # get list of neighboring nodes
         nodes = []
         for move in listAllLegalMoves(state):
-            nodes.append(self.initNode(move, state))
+            nodes.append(self.initNode(move, state, currNode))
 
-        nextNode = self.evalNode(nodes)
-        return self.moveSearch(nextNode['nextState'], depth+1, nextNode)
+        pathUtil = -1
+        for node in nodes:
+        	pathToNode = self.moveSearch(node['nextState'], depth+1, node)
+        	#print len(pathToNode)
+        	currUtil = self.evalNode(pathToNode)
+        	if currUtil > pathUtil:
+        		pathUtil = currUtil
+        		favoriteMove = pathToNode
 
+        favoriteMove.append(currNode)
+        return favoriteMove
 
         
 
