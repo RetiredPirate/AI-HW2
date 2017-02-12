@@ -1,6 +1,7 @@
 import random
 import sys
-sys.path.append("..")  #so other modules can be found in parent dir
+
+sys.path.append("..")  # so other modules can be found in parent dir
 from Player import *
 from Constants import *
 from Construction import CONSTR_STATS
@@ -9,25 +10,25 @@ from Move import Move
 from GameState import *
 from AIPlayerUtils import *
 
+
 ##
-#AIPlayer
-#Description: The responsbility of this class is to interact with the game by
-#deciding a valid move based on a given game state. This class has methods that
-#will be implemented by students in Dr. Nuxoll's AI course.
+# AIPlayer
+# Description: The responsbility of this class is to interact with the game by
+# deciding a valid move based on a given game state. This class has methods that
+# will be implemented by students in Dr. Nuxoll's AI course.
 #
-#Variables:
+# Variables:
 #   playerId - The id of the player.
 ##
 class AIPlayer(Player):
-
-    #__init__
-    #Description: Creates a new Player
+    # __init__
+    # Description: Creates a new Player
     #
-    #Parameters:
+    # Parameters:
     #   inputPlayerId - The id to give the new player (int)
     ##
     def __init__(self, inputPlayerId):
-        super(AIPlayer,self).__init__(inputPlayerId, "AI_NOT_FOUND")
+        super(AIPlayer, self).__init__(inputPlayerId, "AI_NOT_FOUND")
 
         self.enemyFood = []
         self.ourFood = []
@@ -35,69 +36,69 @@ class AIPlayer(Player):
         self.weHaveNotDoneThisBefore = True
 
         self.searchDepth = 2
-    
+
     ##
-    #getPlacement
+    # getPlacement
     #
-    #Description: called during setup phase for each Construction that
+    # Description: called during setup phase for each Construction that
     #   must be placed by the player.  These items are: 1 Anthill on
     #   the player's side; 1 tunnel on player's side; 9 grass on the
     #   player's side; and 2 food on the enemy's side.
     #
-    #Parameters:
+    # Parameters:
     #   construction - the Construction to be placed.
     #   currentState - the state of the game at this point in time.
     #
-    #Return: The coordinates of where the construction is to be placed
+    # Return: The coordinates of where the construction is to be placed
     ##
     def getPlacement(self, currentState):
         numToPlace = 0
-        #implemented by students to return their next move
-        if currentState.phase == SETUP_PHASE_1:    #stuff on my side
+        # implemented by students to return their next move
+        if currentState.phase == SETUP_PHASE_1:  # stuff on my side
             numToPlace = 11
             moves = []
             for i in range(0, numToPlace):
                 move = None
                 while move == None:
-                    #Choose any x location
+                    # Choose any x location
                     x = random.randint(0, 9)
-                    #Choose any y location on your side of the board
+                    # Choose any y location on your side of the board
                     y = random.randint(0, 3)
-                    #Set the move if this space is empty
+                    # Set the move if this space is empty
                     if currentState.board[x][y].constr == None and (x, y) not in moves:
                         move = (x, y)
-                        #Just need to make the space non-empty. So I threw whatever I felt like in there.
+                        # Just need to make the space non-empty. So I threw whatever I felt like in there.
                         currentState.board[x][y].constr == True
                 moves.append(move)
             return moves
-        elif currentState.phase == SETUP_PHASE_2:   #stuff on foe's side
+        elif currentState.phase == SETUP_PHASE_2:  # stuff on foe's side
             numToPlace = 2
             moves = []
             for i in range(0, numToPlace):
                 move = None
                 while move == None:
-                    #Choose any x location
+                    # Choose any x location
                     x = random.randint(0, 9)
-                    #Choose any y location on enemy side of the board
+                    # Choose any y location on enemy side of the board
                     y = random.randint(6, 9)
-                    #Set the move if this space is empty
+                    # Set the move if this space is empty
                     if currentState.board[x][y].constr == None and (x, y) not in moves:
                         move = (x, y)
-                        #Just need to make the space non-empty. So I threw whatever I felt like in there.
+                        # Just need to make the space non-empty. So I threw whatever I felt like in there.
                         currentState.board[x][y].constr == True
                 moves.append(move)
             return moves
         else:
             return [(0, 0)]
-    
+
     ##
-    #getMove
-    #Description: Gets the next move from the Player.
+    # getMove
+    # Description: Gets the next move from the Player.
     #
-    #Parameters:
+    # Parameters:
     #   currentState - The state of the current game waiting for the player's move (GameState)
     #
-    #Return: The Move to be made
+    # Return: The Move to be made
     ##
     def getMove(self, currentState):
         # get food lists
@@ -121,72 +122,91 @@ class AIPlayer(Player):
         # numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
         # while (selectedMove.moveType == BUILD and numAnts >= 3):
         #     selectedMove = moves[random.randint(0,len(moves) - 1)];
-            
+
         # return selectedMove
 
-    
     ##
-    #getAttack
-    #Description: Gets the attack to be made from the Player
+    # getAttack
+    # Description: Gets the attack to be made from the Player
     #
-    #Parameters:
+    # Parameters:
     #   currentState - A clone of the current state (GameState)
     #   attackingAnt - The ant currently making the attack (Ant)
     #   enemyLocation - The Locations of the Enemies that can be attacked (Location[])
     ##
     def getAttack(self, currentState, attackingAnt, enemyLocations):
-        #Attack a random enemy.
+        # Attack a random enemy.
         return enemyLocations[random.randint(0, len(enemyLocations) - 1)]
 
-
+    ##
+    # getUtility
+    # Description: Creates a utility value in the range 0-1 with the given state
     #
-    #
-    #
+    # Parameters:
+    #   currentState - A clone of the current state (GameState)
+    ##
     def getUtility(self, currentState):
+        # If our agent has won, return a utility of 1.0
         if self.hasWon(currentState, self.playerId):
             return 1.0
-
+        # If our agent has lost, return a utility of 0
         elif self.hasWon(currentState, (self.playerId + 1) % 2):
             return 0.0
-
+        # Getting our inventory and our enemy's inventory
         for inv in currentState.inventories:
             if inv.player == currentState.whoseTurn:
                 ourInv = inv
             else:
                 enemyInv = inv
 
+        # The code below creates a utility value based on the number of ants our agent has in their inventory
         # Range of 0.5 to 1.5
-        foodUtil = (float(ourInv.foodCount) / max(float(ourInv.foodCount + enemyInv.foodCount),1))  + 0.5
+        foodUtil = (float(ourInv.foodCount) / max(float(ourInv.foodCount + enemyInv.foodCount), 1)) + 0.5
 
+        # If our agent has less than three ants this is a bad utility, if our agent has 3 to 5 ants this is a good
+        # utility, and if our agent over 5 ants this is a medium utility
         numAnts = len(ourInv.ants)
         if numAnts < 3:
             antUtil = 0.5
-        elif numAnts in range(3,5):
+        elif numAnts in range(3, 5):
             antUtil = 1.5
         else:
             antUtil = 1
 
+        # The code below creates a utility value based on the number of ants the enemy has
+        # If the enemy has more than 6 ants this is a bad utility and if the enemy has less it is a good utility
         enemyNumAnts = len(enemyInv.ants)
         if enemyNumAnts > 6:
             enemyAntUtil = 1.5
         else:
             enemyAntUtil = (enemyNumAnts / 6) + 0.5
 
-        utility = ( (foodUtil * antUtil * enemyAntUtil) / (1.5*1.5*1.5) ) - 0.05
+        # Create the total utility based on the two values calculated above
+        utility = ((foodUtil * antUtil * enemyAntUtil) / (1.5 * 1.5 * 1.5)) - 0.05
 
         return utility
 
-
-
-    # Create a new Node and return it
+    # #
+    # initNode
+    # Description: Create a new Node and return it
+    #
+    # Parameters:
+    #   move - the move to create the next node
+    #   currentState - a clone of the current state
+    ##
     def initNode(self, move, currentState):
-        node = {'move': move, 'nextState': getNextState(currentState, move), 
+        node = {'move': move, 'nextState': getNextState(currentState, move),
                 'utility': self.getUtility(getNextState(currentState, move))}
 
         return node
 
-
-    # takes a dictionary of nodes, returns the average utility
+    # #
+    # evalNode
+    # Description: Takes a dictionary of node and returns the average utility
+    #
+    # Parameters:
+    #   nodes - a dictionary list of nodes to be evaluated
+    ##
     def evalNode(self, nodes):
         util = -1.0
         for node in nodes:
@@ -196,32 +216,43 @@ class AIPlayer(Player):
 
         return returnNode
 
-
+    ##
+    # moveSearch
+    # Description: Takes the game state, depth, and a node and expands the node
+    # using the current state. It then picks the node with the best utility and then
+    # repeats this process until the desired depth has been reached.
+    #
+    # Parameters:
+    #   state - the current game state
+    #   depth - the depth we are currently at
+    #   currNode - the node we are expanding
+    ##
     def moveSearch(self, state, depth, currNode):
+        # Base case: if the depth is greater than the depth we want, return the node we are at
         if depth > self.searchDepth:
             return currNode
 
+        # Get a list of all the legal moves in this state
         nodes = []
         for move in listAllLegalMoves(state):
             nodes.append(self.initNode(move, state))
 
+        # Evaluate the legal moves and get the best one
         nextNode = self.evalNode(nodes)
-        return self.moveSearch(nextNode['nextState'], depth+1, nextNode)
 
-
-        
-
+        # Recursively call move search with this best node to the next depth
+        return self.moveSearch(nextNode['nextState'], depth + 1, nextNode)
 
     # Register a win
     def hasWon(self, currentState, playerId):
         opponentId = (playerId + 1) % 2
-        
-        if ((currentState.phase == PLAY_PHASE) and 
-        ((currentState.inventories[opponentId].getQueen() == None) or
-        (currentState.inventories[opponentId].getAnthill().captureHealth <= 0) or
-        (currentState.inventories[playerId].foodCount >= FOOD_GOAL) or
-        (currentState.inventories[opponentId].foodCount == 0 and 
-            len(currentState.inventories[opponentId].ants) == 1))):
+
+        if ((currentState.phase == PLAY_PHASE) and
+                ((currentState.inventories[opponentId].getQueen() == None) or
+                     (currentState.inventories[opponentId].getAnthill().captureHealth <= 0) or
+                     (currentState.inventories[playerId].foodCount >= FOOD_GOAL) or
+                     (currentState.inventories[opponentId].foodCount == 0 and
+                              len(currentState.inventories[opponentId].ants) == 1))):
             return True
         else:
             return False
