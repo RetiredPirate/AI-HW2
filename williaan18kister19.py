@@ -35,8 +35,9 @@ class AIPlayer(Player):
 
         self.weHaveNotDoneThisBefore = True
 
-        self.searchDepth = 2
 
+        self.SEARCH_DEPTH = 3
+    
     ##
     # getPlacement
     #
@@ -111,19 +112,8 @@ class AIPlayer(Player):
                     self.ourFood.append(food)
             self.weHaveNotDoneThisBefore = False
 
-        return self.moveSearch(currentState, 0, None)['move']
-
-
-
-        # moves = listAllLegalMoves(currentState)
-        # selectedMove = moves[random.randint(0,len(moves) - 1)];
-
-        # #don't do a build move if there are already 3+ ants
-        # numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
-        # while (selectedMove.moveType == BUILD and numAnts >= 3):
-        #     selectedMove = moves[random.randint(0,len(moves) - 1)];
-
-        # return selectedMove
+        retMove = self.moveSearch(currentState, 0, None)
+        return retMove[-2]['move']
 
     ##
     # getAttack
@@ -194,11 +184,12 @@ class AIPlayer(Player):
     #   move - the move to create the next node
     #   currentState - a clone of the current state
     ##
-    def initNode(self, move, currentState):
-        node = {'move': move, 'nextState': getNextState(currentState, move),
-                'utility': self.getUtility(getNextState(currentState, move))}
+    def initNode(self, move, currentState, parrentNode):
+        node = {'move': move, 'nextState': getNextState(currentState, move), 
+                'utility': self.getUtility(getNextState(currentState, move)), 'parrent': parrentNode}
 
         return node
+
 
     # #
     # evalNode
@@ -208,13 +199,12 @@ class AIPlayer(Player):
     #   nodes - a dictionary list of nodes to be evaluated
     ##
     def evalNode(self, nodes):
-        util = -1.0
-        for node in nodes:
-            if node['utility'] > util:
-                util = node['utility']
-                returnNode = node
+    	util = 0
+    	for node in nodes:
+    		util += node['utility']
 
-        return returnNode
+    	return float(util) / float(len(nodes))
+
 
     ##
     # moveSearch
@@ -228,20 +218,25 @@ class AIPlayer(Player):
     #   currNode - the node we are expanding
     ##
     def moveSearch(self, state, depth, currNode):
-        # Base case: if the depth is greater than the depth we want, return the node we are at
-        if depth > self.searchDepth:
-            return currNode
+        if depth >= self.SEARCH_DEPTH:
+            return [currNode]
 
-        # Get a list of all the legal moves in this state
+        # get list of neighboring nodes
         nodes = []
         for move in listAllLegalMoves(state):
-            nodes.append(self.initNode(move, state))
+            nodes.append(self.initNode(move, state, currNode))
 
-        # Evaluate the legal moves and get the best one
-        nextNode = self.evalNode(nodes)
+        pathUtil = -1
+        for node in nodes:
+        	pathToNode = self.moveSearch(node['nextState'], depth+1, node)
+        	currUtil = self.evalNode(pathToNode)
+        	if currUtil > pathUtil:
+        		pathUtil = currUtil
+        		favoriteMove = pathToNode
 
-        # Recursively call move search with this best node to the next depth
-        return self.moveSearch(nextNode['nextState'], depth + 1, nextNode)
+        favoriteMove.append(currNode)
+        return favoriteMove
+
 
     # Register a win
     def hasWon(self, currentState, playerId):
