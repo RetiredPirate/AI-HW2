@@ -36,7 +36,7 @@ class AIPlayer(Player):
         self.weHaveNotDoneThisBefore = True
 
 
-        self.SEARCH_DEPTH = 3
+        self.SEARCH_DEPTH = 2
     
     ##
     # getPlacement
@@ -166,9 +166,6 @@ class AIPlayer(Player):
             utility += 40
         if numAnts > 4:
             utility += 10
-
-
-        
         
 
         # The code below creates a utility value based on the number of ants the enemy has
@@ -184,10 +181,14 @@ class AIPlayer(Player):
         if enemyNumAnts == 4:
             utility += 10
 
-        # Utility Range from 0 to 140
-        utility = float(utility/150.0) + 0.03
 
-        print utility
+        for worker in getAntList(currentState, self.playerId, (WORKER,)):
+            if worker.carrying:
+                utility += 4
+
+        # Utility Range from 0 to 140
+        utility = float(utility)/166.0 + 0.03
+
         return utility
 
     # #
@@ -198,9 +199,9 @@ class AIPlayer(Player):
     #   move - the move to create the next node
     #   currentState - a clone of the current state
     ##
-    def initNode(self, move, currentState, parrentNode):
+    def initNode(self, move, currentState):
         node = {'move': move, 'nextState': getNextState(currentState, move), 
-                'utility': self.getUtility(getNextState(currentState, move)), 'parrent': parrentNode}
+                'utility': self.getUtility(getNextState(currentState, move))}
 
         return node
 
@@ -238,7 +239,7 @@ class AIPlayer(Player):
         # get list of neighboring nodes
         nodes = []
         for move in listAllLegalMoves(state):
-            nodes.append(self.initNode(move, state, currNode))
+            nodes.append(self.initNode(move, state))
 
         pathUtil = -1
         for node in nodes:
@@ -265,3 +266,29 @@ class AIPlayer(Player):
             return True
         else:
             return False
+
+
+
+#### UNIT TESTS ####
+
+board = [[Location((col, row)) for row in xrange(0,BOARD_LENGTH)] for col in xrange(0,BOARD_LENGTH)]
+p1Inventory = Inventory(PLAYER_ONE, [], [], 0)
+p2Inventory = Inventory(PLAYER_TWO, [], [], 0)
+neutralInventory = Inventory(NEUTRAL, [], [], 0)
+state = GameState(board, [p1Inventory, p2Inventory, neutralInventory], PLAY_PHASE, PLAYER_ONE)
+
+player = AIPlayer(PLAYER_ONE)
+x = player.getUtility(state)
+
+if not (x <=1 and x >= 0):
+    print "The method getUtility() has returned an out of bounds value."
+
+
+for move in listAllLegalMoves(state):
+    node = player.initNode(move, state)
+    if node['move'] is not Move:
+        print "Move not found in Node structure"
+    if node['nextState'] is not GameState:
+        print "State not found in Node structure"
+    if node['utility'] is not float:
+        print "Utility not found in Node structure"
